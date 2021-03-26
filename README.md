@@ -6,13 +6,13 @@ Julia macros to usingasily construct named tuples and set properties of mutable 
 
 AddToField.jl can be installed via the Julia package manager. Run either of the following to install:
 
-```
+```julia
 julia> import Pkg; Pkg.add("AddToField")
 ```
 
 or via the `Pkg` REPL mode (enter by typing `]` at the REPL console)
 
-```
+```julia
 ] add AddToField
 ```
 
