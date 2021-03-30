@@ -2,6 +2,9 @@
 
 Julia macros to easily construct named tuples and set properties of mutable structures. 
 
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://pdeffebach.github.io/AddToField.jl/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://pdeffebach.github.io/AddToField.jl/dev)
+
 # Installation 
 
 AddToField.jl can be installed via the Julia package manager. Run either of the following to install:
