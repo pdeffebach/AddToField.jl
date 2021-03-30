@@ -91,7 +91,7 @@ julia> @addto! df begin
 ```
 
 !!! note
-    `You` cannot use `@add` in new scopes created with
+    You cannot use `@add` in new scopes created with
     `body`. The following will fail
 
     ```julia
