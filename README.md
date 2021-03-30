@@ -19,7 +19,7 @@ or via the `Pkg` REPL mode (enter by typing `]` at the REPL console)
 # Documentation
 
 * [Stable](https://pdeffebach.github.io/AddToField.jl/stable)
-* [Development](https://pdeffebach.github.io/AddToField.jl/stable)
+* [Development](https://pdeffebach.github.io/AddToField.jl/dev)
 
 # Package Maintenance
 
