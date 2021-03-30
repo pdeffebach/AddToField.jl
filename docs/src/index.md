@@ -2,10 +2,45 @@
 
 Julia macros to usingasily construct named tuples and set properties of mutable structures. AddToField.jl exports two macros, `@addnt`, for constructing `NamedTuple`s and `@addto!` for modifiying existing data structures. 
 
-AddToField was originally written to make working with DataFrames easier, in 
-particular the creation of publication-quality tables. Consider the following 
+To create `NamedTuples`, use `@addnt`:
 
+```julia
+julia> using AddToField;
+
+julia> @addnt begin 
+           @add a = 1
+           @add b = a + 2
+       end
+(a = 1, b = 3)
+
+julia> @addnt begin 
+           @add "Variable a" a = 1
+           @add b = a + 2
+       end
+(Variable a = 1, b = 3)
 ```
+
+To modify existing structures, use `@addto!`
+
+```julia
+julia> D = Dict();
+
+julia> @addto! D begin 
+           @add a = 1
+           @add b = a + 2
+           @add "Variable c" c = b + 3
+       end
+Dict{Any,Any} with 3 entries:
+  :a                   => 1
+  :b                   => 3
+  Symbol("Variable c") => 6
+```
+
+
+AddToField makes working with [DataFrames](https://github.com/JuliaData/DataFrames.jl)
+easier. First, makes the creation of publication-quality tables easier. 
+
+```julia
 using DataFrames, PrettyTables, Chain
 julia> df = DataFrame(
            group = repeat(1:2, 50),
@@ -32,12 +67,45 @@ julia> @chain df begin
 └───────┴──────────────────────┴─────────────────────┴────────────┘
 ```
 
-# Provided macros
+It also makes constructing data frames easier
 
-```@docs
-@addnt
+
+```julia
+julia> using DataFrames
+
+julia> df = DataFrame();
+
+julia> @addto! df begin
+           x = ["a", "b", "c"]
+           @add x = x .* "_x"
+           @add x_y = x .* "_y"
+       end
+3×2 DataFrame
+ Row │ x       x_y    
+     │ String  String 
+─────┼────────────────
+   1 │ a_x     a_x_y
+   2 │ b_x     b_x_y
+   3 │ c_x     c_x_y
+
 ```
 
-```@docs
-@addto!
-```
+!!! note
+    `You` cannot use `@add` in new scopes created with
+    `body`. The following will fail
+
+    ```julia
+    @addnt begin
+      let
+          a = 1
+          @add a
+      end
+    end
+    ```
+
+    This is because `@addnt` and `@addto!` create anonymous variables,
+    then constructs and modifies objects at the end of the block.
+    The same applies for `for` loops and `function`s  inside the `@addnt` and 
+    `@addto!` blocks. In theory, `@addto!` should not have this limitation. 
+    However I implementing this feature in `@addnt` is more complicated, 
+    and At the moment maintaining simple feature parity is important. 

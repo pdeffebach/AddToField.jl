@@ -34,6 +34,7 @@ function add_to_props_vec!(props_vec, arg)
 		Expr(:block, Expr(:(=), v, arg.args[3]))
 	elseif is_interp_string(arg.args[3])
 		v = gensym()
+		v_n = gensym()
 		n = arg.args[3]
 		push!(props_vec, :(Symbol($n) => $v))
 		Expr(:block, Expr(:(=), v, arg.args[4]))
@@ -121,17 +122,18 @@ end
     `body`. The following will fail
 
     ```julia
-@addnt begin
-	let
-	    a = 1
-	    @add a
-	end
-end
+    @addnt begin
+    	let
+    	    a = 1
+    	    @add a
+    	end
+    end
     ```
 
     This is because `@addnt` creates anonymous variables,
     then constructs the named tuple at the end of the
-    expression.
+    expression. The same applies for `for` loops and `function`s
+    inside the `@addnt` and `@addto!` blocks.
 """
 macro addnt(body)
 	esc(addto_one_arg_helper(body))
@@ -219,12 +221,12 @@ Dict{Any,Any} with 8 entries:
     `body`. The following will fail
 
     ```julia
-@addto! D begin
-	let
-	    a = 1
-	    @add a
-	end
-end
+    @addto! D begin
+    	let
+    	    a = 1
+    	    @add a
+    	end
+    end
     ```
 
     This is because `@addto!` creates anonymous variables,
