@@ -1,6 +1,6 @@
 # AddToField.jl
 
-Julia macros to usingasily construct named tuples and set properties of mutable structures. AddToField.jl exports two macros, `@addnt`, for constructing `NamedTuple`s and `@addto!` for modifiying existing data structures. 
+Julia macros to easily construct named tuples and set properties of mutable structures. AddToField.jl exports two macros, `@addnt`, for constructing `NamedTuple`s and `@addto!` for modifiying existing data structures. Github repo [here](https://github.com/pdeffebach/AddToField.jl).
 
 To create `NamedTuples`, use `@addnt`:
 
