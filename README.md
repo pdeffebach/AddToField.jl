@@ -1,6 +1,6 @@
 # AddToField
 
-Julia macros to usingasily construct named tuples and set properties of mutable structures. 
+Julia macros to easily construct named tuples and set properties of mutable structures. 
 
 # Installation 
 
