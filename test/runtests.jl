@@ -58,7 +58,7 @@ end
 
 	r = Ref(1)
 
-	res = @addto D begin
+	res = @addto! D begin
 		a = 1
 		@add a
 		@add b = 2
@@ -92,7 +92,7 @@ end
 
 	r = Ref(1)
 
-	res = @addto PD begin
+	res = @addto! PD begin
 		a = 1
 		@add a
 		@add b = 2
