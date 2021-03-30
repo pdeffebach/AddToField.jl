@@ -6,7 +6,10 @@ makedocs(
 	sitename = "AddToField.jl",
 	pages = Any[
 		"Introduction" => "index.md",
-		"API" => "api/api.md"])
+		"API" => "api/api.md"],
+	format = Documenter.HTML(
+		canonical = "https://pdeffebach.github.io/AddToField.jl/stable/"
+	))
 
 deploydocs(
     repo = "github.com/pdeffebach/AddToField.jl.git",
