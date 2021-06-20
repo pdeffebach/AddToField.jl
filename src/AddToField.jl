@@ -59,7 +59,6 @@ function add_to_props_vec!(props_vec, arg)
 end
 
 function addto_one_arg_helper(body)
-	length(body.args) == 1 && return :(NamedTuple())
 	props_vec = Expr[]
 
 	newbody = MacroTools.postwalk(body) do x
@@ -140,7 +139,6 @@ macro addnt(body)
 end
 
 function addto_two_arg_helper(x, body)
-	length(body.args) == 1 && return x
 	props_vec = []
 
 	newbody = MacroTools.postwalk(body) do x
