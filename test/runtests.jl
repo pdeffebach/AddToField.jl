@@ -110,4 +110,27 @@ end
 	@test res.D == correct
 end
 
+@testset "let" begin
+	x = 1
+
+	@test x == 1
+	res = @addnt let
+		local x = 2
+		@add y = 5
+	end
+
+	@test res == (; y = 5)
+	@test x == 1
+
+	res = Dict{Symbol, Int}()
+
+	@addto! res let
+		local x = 2
+		@add y = 5
+	end
+
+	@test res == Dict([:y => 5])
+	@test x == 1
+end
+
 end # module

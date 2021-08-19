@@ -25,9 +25,7 @@ function add_property_or_index!(d, name, value)
 end
 
 function add_to_props_vec!(props_vec, arg)
-	if false
-
-	elseif arg.args[3] isa Symbol
+	if arg.args[3] isa Symbol
 		v = gensym()
 		n = QuoteNode(arg.args[3])
 		push!(props_vec, :($n => $v))
@@ -59,6 +57,8 @@ function add_to_props_vec!(props_vec, arg)
 end
 
 function addto_one_arg_helper(body)
+	body = MacroTools.unblock(body)
+
 	props_vec = Expr[]
 
 	newbody = MacroTools.postwalk(body) do x
@@ -71,7 +71,12 @@ function addto_one_arg_helper(body)
 
 	nt_expr = Expr(:tuple, Expr(:parameters, props_vec...))
 
-    return Expr(:block, newbody, nt_expr)
+	if body isa Expr && body.head == :let
+		newbody.args[2] = Expr(:block, newbody.args[2], nt_expr)
+		return newbody
+	else
+   	return Expr(:block, newbody, nt_expr)
+   end
 end
 
 """
@@ -95,6 +100,10 @@ syntaxes.
 - `@add "My value" x = expr`: The named tuple will contain the field
    `Symbol("My value")` with the value of `expr`. The variable `x` will still be created.
 
+`@addnt begin ... end` does not create a new scope, meaning changes
+all variable assignments in the inside the expression modify the
+existing scope. To create a new scope, use `@addnt let ... end`.
+
 ### Example:
 
 ```jldoctest
@@ -114,6 +123,14 @@ julia> res = @addnt begin
 	end
 end
 (a = 1, f = 6, g = 7, h = 8, b = 2, c1 = 3, d1 = 4, My long name = 5)
+
+julia> @addnt let
+           @add local_var = 500
+       end
+(local_var = 500,)
+
+julia> isdefined(Main, :local_var)
+false
 ```
 
 !!! note
@@ -139,6 +156,8 @@ macro addnt(body)
 end
 
 function addto_two_arg_helper(x, body)
+	body = MacroTools.unblock(body)
+
 	props_vec = []
 
 	newbody = MacroTools.postwalk(body) do x
@@ -156,7 +175,12 @@ function addto_two_arg_helper(x, body)
 	end
 	push!(addproperties, quote $x end)
 
-    return Expr(:block, newbody, addproperties...)
+	if body isa Expr && body.head == :let
+		newbody.args[2] = Expr(:block, newbody.args[2], addproperties...)
+		return newbody
+	else
+   	return Expr(:block, newbody, addproperties...)
+   end
 end
 
 """
@@ -182,6 +206,10 @@ Within `body`, you can add properies or indices of `x` with the following.
 `@addto!` defaults to calling `setproperty!` on `x`. However
 with `AbstractDict`, it calls `setindex!` with `Symbol`s.
 Wieh `AbstractDict{<:AbstractString}` is calls `setindex!` with `String`s.
+
+`@addto! d begin ... end` does not create a new scope, meaning changes
+all variable assignments in the inside the expression modify the
+existing scope. To create a new scope, use `@addto! d let ... end`.
 
 ### Example:
 
@@ -212,6 +240,13 @@ Dict{Any,Any} with 8 entries:
   :d1                    => 4
   :c1                    => 3
   Symbol("My long name") => 5
+
+julia> @addto! d let
+           @add local_var = 500
+       end;
+
+julia> isdefined(Main, :local_var)
+false
 ```
 
 !!! note
