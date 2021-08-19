@@ -133,4 +133,35 @@ end
 	@test x == 1
 end
 
+@testset "new dict" begin
+	d = @addto! Dict() begin
+		x = 1
+		@add y = 2
+	end
+
+	@test d == Dict{Any, Any}(:y => 2)
+
+	d = @addto! Dict() let
+		x = 10
+		@add y = 20
+	end
+
+	@test d == Dict{Any, Any}(:y => 20)
+
+
+	d = @addto! Dict() let z = 50
+		x = 100
+		@add y = 200
+	end
+
+	@test d == Dict{Any, Any}(:y => 200)
+
+	d = @addto! Dict() let z = 50, zz = 51
+		x = 100
+		@add y = 200
+	end
+
+	@test d == Dict{Any, Any}(:y => 200)
+end
+
 end # module

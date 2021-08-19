@@ -168,18 +168,29 @@ function addto_two_arg_helper(x, body)
 		end
 	end
 
+	anon = gensym()
+	assign_to_anon = :($anon = $x)
+
 	addproperties = map(props_vec) do p
 		name = p.args[2]
 		value = p.args[3]
-		:(AddToField.add_property_or_index!($x, $name, $value))
+		:(AddToField.add_property_or_index!($anon, $name, $value))
 	end
-	push!(addproperties, quote $x end)
+	push!(addproperties, quote $anon end)
 
 	if body isa Expr && body.head == :let
+		# The first argument of a let block is a block of
+		# assignments for the variable captures if
+		# there are multiple captures. But if there
+		# is only one, it is not, so we put it in
+		# a block.
+		initial_let_assignments = MacroTools.block(newbody.args[1])
+		push!(initial_let_assignments.args, assign_to_anon)
+		newbody.args[1] = initial_let_assignments
 		newbody.args[2] = Expr(:block, newbody.args[2], addproperties...)
 		return newbody
 	else
-   	return Expr(:block, newbody, addproperties...)
+   	return Expr(:block, assign_to_anon, newbody, addproperties...)
    end
 end
 
