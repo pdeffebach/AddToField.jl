@@ -131,6 +131,22 @@ end
 
 	@test res == Dict([:y => 5])
 	@test x == 1
+
+	@addto! res let z = 1
+		local x = 2
+		@add y = 5
+	end
+
+	@test res == Dict([:y => 5])
+	@test x == 1
+
+	@addto! res let z = 1, z1 = 2
+		local x = 2
+		@add y = 5
+	end
+
+	@test res == Dict([:y => 5])
+	@test x == 1
 end
 
 @testset "new dict" begin
