@@ -2,7 +2,7 @@ module AddToField
 
 using MacroTools
 
-export @addnt, @addto!
+export @addnt, @adddict, @addto!
 
 is_add(x::Expr) = x.head == :macrocall && x.args[1] == Symbol("@add")
 is_add(x) = false
@@ -56,7 +56,7 @@ function add_to_props_vec!(props_vec, arg)
 	end
 end
 
-function addto_one_arg_helper(body)
+function addto_nt_helper(body)
 	body = MacroTools.unblock(body)
 
 	props_vec = Expr[]
@@ -152,7 +152,33 @@ false
     inside the `@addnt` and `@addto!` blocks.
 """
 macro addnt(body)
-	esc(addto_one_arg_helper(body))
+	esc(addto_nt_helper(body))
+end
+
+function addto_dict_helper(body)
+	body = MacroTools.unblock(body)
+
+	props_vec = Expr[]
+
+	newbody = MacroTools.postwalk(body) do x
+		if is_add(x)
+			add_to_props_vec!(props_vec, x)
+		else
+			x
+		end
+	end
+	dict_expr = :(Dict([$(props_vec...)]))
+
+	if body isa Expr && body.head == :let
+		newbody.args[2] = Expr(:block, newbody.args[2], dict_expr)
+		return newbody
+	else
+   	return Expr(:block, newbody, dict_expr)
+   end
+end
+
+macro adddict(body)
+	esc(addto_dict_helper(body))
 end
 
 function addto_two_arg_helper(x, body)
