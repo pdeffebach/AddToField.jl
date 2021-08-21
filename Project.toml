@@ -1,7 +1,7 @@
 name = "AddToField"
 uuid = "5f906781-1e48-4758-8d00-55479429a6a5"
 authors = ["Peter Deffebach <p.deffebach@gmail.com> and contributors"]
-version = "0.1.1"
+version = "0.2.0"
 
 [deps]
 MacroTools = "1914dd2f-81c6-5fcd-8719-6d5c9610ff09"
