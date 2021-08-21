@@ -15,7 +15,7 @@ end
 
 setproperty!(PD::PropertyDict, name::Symbol, value) = setindex!(PD.D, value, name)
 
-@testset "one arg" begin
+@testset "nt" begin
 	s = "e1"
 
 	r = Ref(1)
@@ -46,6 +46,42 @@ setproperty!(PD::PropertyDict, name::Symbol, value) = setindex!(PD.D, value, nam
 		h = 8,
 		i = 2,
 		j = 3
+	)
+
+	@test res == correct
+end
+
+@testset "dict" begin
+	s = "e1"
+
+	r = Ref(1)
+
+	res = @adddict begin
+		a = 1
+		@add a
+		@add b = 2
+		@add :c1 c = 3
+		@add "d1" d = 4
+		@add "$s" e = 5
+		f, g, h = 6, 7, 8
+
+		@add f, g, h
+
+		@add i = addone(r)
+		@add "j" addone(r)
+	end
+
+	correct= Dict(
+		:a => 1,
+		:b => 2,
+		:c1 => 3,
+		:d1 => 4,
+		:e1 => 5,
+		:f => 6,
+		:g => 7,
+		:h => 8,
+		:i => 2,
+		:j => 3
 	)
 
 	@test res == correct
@@ -121,6 +157,37 @@ end
 
 	@test res == (; y = 5)
 	@test x == 1
+
+	x = 1
+
+	@test x == 1
+	res = @adddict let
+		local x = 2
+		@add y = 5
+	end
+
+	@test res == Dict(:y => 5)
+	@test x == 1
+
+	res = @addnt let y = 1
+		@add x = 1
+	end;
+	@test res == (;x = 1)
+
+	res = @addnt let y = 1, z = 2
+		@add x = 1
+	end;
+	@test res == (;x = 1)
+
+	res = @adddict let y = 1
+		@add x = 1
+	end;
+	@test res == Dict(:x => 1)
+
+	res = @adddict let y = 1, z = 2
+		@add x = 1
+	end;
+	@test res == Dict(:x => 1)
 
 	res = Dict{Symbol, Int}()
 

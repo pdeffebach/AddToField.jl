@@ -2,7 +2,7 @@ module AddToField
 
 using MacroTools
 
-export @addnt, @addto!
+export @addnt, @adddict, @addto!
 
 is_add(x::Expr) = x.head == :macrocall && x.args[1] == Symbol("@add")
 is_add(x) = false
@@ -56,7 +56,7 @@ function add_to_props_vec!(props_vec, arg)
 	end
 end
 
-function addto_one_arg_helper(body)
+function addto_nt_helper(body)
 	body = MacroTools.unblock(body)
 
 	props_vec = Expr[]
@@ -152,7 +152,114 @@ false
     inside the `@addnt` and `@addto!` blocks.
 """
 macro addnt(body)
-	esc(addto_one_arg_helper(body))
+	esc(addto_nt_helper(body))
+end
+
+function addto_dict_helper(body)
+	body = MacroTools.unblock(body)
+
+	props_vec = Expr[]
+
+	newbody = MacroTools.postwalk(body) do x
+		if is_add(x)
+			add_to_props_vec!(props_vec, x)
+		else
+			x
+		end
+	end
+	dict_expr = :(Dict([$(props_vec...)]))
+
+	if body isa Expr && body.head == :let
+		newbody.args[2] = Expr(:block, newbody.args[2], dict_expr)
+		return newbody
+	else
+   	return Expr(:block, newbody, dict_expr)
+   end
+end
+
+"""
+	@adddict(body)
+
+Create a `Dict` with `Symbol`s as keys using `@add` statments inside `body`.
+
+### Usage
+
+Within `body`, you can create a `Dict` with the following
+syntaxes.
+
+- `@add x`: The `Dict` will contain the field `:x` with the value of `x`.
+- `@add x, y, z`: The `Dict` will contain the fields `x`, `y`, and `z` with
+   their corresponding values.
+- `@add x = expr`: The `Dict` will contain the field `:x` with the value of
+   `expr`. The variable `x` will still be created.
+- `@add "My value" x`: The `Dict` will contain the field `Symbol("My value)`
+   with the value of `x`. You can also interpolate values inside the `String`
+   name.
+- `@add "My value" x = expr`: The `Dict` will contain the field
+   `Symbol("My value")` with the value of `expr`. The variable `x` will still be created.
+
+`@addict begin ... end` does not create a new scope, meaning changes
+all variable assignments in the inside the expression modify the
+existing scope. To create a new scope, use `@adddict let ... end`.
+
+### Example:
+
+```jldoctest
+julia> s = "My long name";
+
+julia> res = @adddict begin
+		a = 1
+		@add a
+
+		f, g, h = 6, 7, 8
+		@add f, g, h
+
+		@add b = 2
+		@add :c1 c = 3
+		@add "d1" d = 4
+		@add "My long name" e = 5
+	end
+end
+Dict{Symbol, Int64} with 8 entries:
+  :a                     => 1
+  :f                     => 6
+  :b                     => 2
+  :h                     => 8
+  :g                     => 7
+  :d1                    => 4
+  :c1                    => 3
+  Symbol("My long name") => 5
+
+julia> @adddict let
+           @add local_var = 500
+       end
+Dict{Symbol, Int64} with 1 entry:
+  :local_var => 500
+
+julia> isdefined(Main, :local_var)
+false
+```
+
+!!! note
+    `You` cannot use `@add` in new scopes created with
+    `body`. The following will fail
+
+    ```julia
+    @adddict begin
+    	let
+    	    a = 1
+    	    @add a
+    	end
+    end
+    ```
+
+    This is because `@adddict` creates anonymous variables,
+    then constructs the `Dict` at the end of the
+    expression. The same applies for `for` loops and `function`s
+    inside the `@addict` block.
+   """
+macro adddict(body)
+	esc(addto_dict_helper(body))
 end
 
 function addto_two_arg_helper(x, body)

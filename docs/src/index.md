@@ -1,6 +1,6 @@
 # AddToField.jl
 
-Julia macros to easily construct named tuples and set properties of mutable structures. AddToField.jl exports two macros, `@addnt`, for constructing `NamedTuple`s and `@addto!` for modifiying existing data structures. Github repo [here](https://github.com/pdeffebach/AddToField.jl).
+Julia macros to easily construct named tuples and set properties of mutable structures. AddToField.jl exports three macros, `@addnt`, for constructing `NamedTuple`s, `@adddict`, for creating `Dict`s with `Symbol`s as keys, and `@addto!` for modifiying existing data structures. Github repo [here](https://github.com/pdeffebach/AddToField.jl).
 
 To create `NamedTuples`, use `@addnt`:
 
@@ -18,6 +18,28 @@ julia> @addnt begin
            @add b = a + 2
        end
 (Variable a = 1, b = 3)
+```
+
+To create `Dict`s, use `@adddict`:
+
+```julia
+julia> using AddToField;
+
+julia> @adddict begin 
+           @add a = 1
+           @add b = a + 2
+       end
+Dict{Symbol, Int64} with 2 entries:
+  :a => 1
+  :b => 3
+
+julia> @adddict begin 
+           @add "Variable a" a = 1
+           @add b = a + 2
+       end
+Dict{Symbol, Int64} with 2 entries:
+  Symbol("Variable a") => 1
+  :b                   => 3
 ```
 
 To modify existing structures, use `@addto!`
@@ -73,9 +95,7 @@ It also makes constructing data frames easier
 ```julia
 julia> using DataFrames
 
-julia> df = DataFrame();
-
-julia> @addto! df begin
+julia> @addto! DataFrame() begin
            x = ["a", "b", "c"]
            @add x = x .* "_x"
            @add x_y = x .* "_y"
@@ -103,9 +123,9 @@ julia> @addto! df begin
     end
     ```
 
-    This is because `@addnt` and `@addto!` create anonymous variables,
+    This is because `@addnt`, `@adddict`, and `@addto!` create anonymous variables,
     then constructs and modifies objects at the end of the block.
-    The same applies for `for` loops and `function`s  inside the `@addnt` and 
+    The same applies for `for` loops and `function`s  inside the `@addnt`, `@adddict`, and 
     `@addto!` blocks. In theory, `@addto!` should not have this limitation. 
     However I implementing this feature in `@addnt` is more complicated, 
-    and At the moment maintaining simple feature parity is important. 
+    and at the moment maintaining simple feature parity is important. 
