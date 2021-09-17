@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Introduction · AddToField.jl</title><script data-outdated-warner src="assets/warner.js"></script><link rel="canonical" href="https://pdeffebach.github.io/AddToField.jl/stable/"/><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.039/juliamono-regular.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.13.11/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="assets/documenter.js"></script><script src="siteinfo.js"></script><script src="../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href>AddToField.jl</a></span></div><form class="docs-search" action="search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li class="is-active"><a class="tocitem" href>Introduction</a></li><li><a class="tocitem" href="api/api/">API</a></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li class="is-active"><a href>Introduction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Introduction</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/pdeffebach/AddToField.jl/blob/master/docs/src/index.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="AddToField.jl"><a class="docs-heading-anchor" href="#AddToField.jl">AddToField.jl</a><a id="AddToField.jl-1"></a><a class="docs-heading-anchor-permalink" href="#AddToField.jl" title="Permalink"></a></h1><p>Julia macros to easily construct named tuples and set properties of mutable structures. AddToField.jl exports three macros, <code>@addnt</code>, for constructing <code>NamedTuple</code>s, <code>@adddict</code>, for creating <code>Dict</code>s with <code>Symbol</code>s as keys, and <code>@addto!</code> for modifiying existing data structures. Github repo <a href="https://github.com/pdeffebach/AddToField.jl">here</a>.</p><p>To create <code>NamedTuples</code>, use <code>@addnt</code>:</p><pre><code class="language-julia hljs">julia&gt; using AddToField;
+
+julia&gt; @addnt begin 
+           @add a = 1
+           @add b = a + 2
+       end
+(a = 1, b = 3)
+
+julia&gt; @addnt begin 
+           @add &quot;Variable a&quot; a = 1
+           @add b = a + 2
+       end
+(Variable a = 1, b = 3)</code></pre><p>To create <code>Dict</code>s, use <code>@adddict</code>:</p><pre><code class="language-julia hljs">julia&gt; using AddToField;
+
+julia&gt; @adddict begin 
+           @add a = 1
+           @add b = a + 2
+       end
+Dict{Symbol, Int64} with 2 entries:
+  :a =&gt; 1
+  :b =&gt; 3
+
+julia&gt; @adddict begin 
+           @add &quot;Variable a&quot; a = 1
+           @add b = a + 2
+       end
+Dict{Symbol, Int64} with 2 entries:
+  Symbol(&quot;Variable a&quot;) =&gt; 1
+  :b                   =&gt; 3</code></pre><p>To modify existing structures, use <code>@addto!</code></p><pre><code class="language-julia hljs">julia&gt; D = Dict();
+
+julia&gt; @addto! D begin 
+           @add a = 1
+           @add b = a + 2
+           @add &quot;Variable c&quot; c = b + 3
+       end
+Dict{Any,Any} with 3 entries:
+  :a                   =&gt; 1
+  :b                   =&gt; 3
+  Symbol(&quot;Variable c&quot;) =&gt; 6</code></pre><p>AddToField makes working with <a href="https://github.com/JuliaData/DataFrames.jl">DataFrames</a> easier. First, makes the creation of publication-quality tables easier. </p><pre><code class="language-julia hljs">using DataFrames, PrettyTables, Chain
+julia&gt; df = DataFrame(
+           group = repeat(1:2, 50),
+           income_reported = rand(100),
+           income_imputed = rand(100));
+
+julia&gt; @chain df begin 
+           groupby(:group)
+           combine(_; keepkeys = false) do d
+               @addnt begin 
+                   @add &quot;Group&quot; first(d.group)
+                   @add &quot;Mean reported income&quot; m_reported = mean(d.income_reported)
+                   @add &quot;Mean imputed income&quot; m_imputed = mean(d.income_imputed)
+                   @add &quot;Difference&quot; m_reported - m_imputed
+               end
+           end
+           pretty_table(;nosubheader = true)
+       end
+┌───────┬──────────────────────┬─────────────────────┬────────────┐
+│ Group │ Mean reported income │ Mean imputed income │ Difference │
+├───────┼──────────────────────┼─────────────────────┼────────────┤
+│     1 │             0.523069 │             0.53696 │ -0.0138915 │
+│     2 │             0.473178 │             0.41845 │  0.0547277 │
+└───────┴──────────────────────┴─────────────────────┴────────────┘</code></pre><p>It also makes constructing data frames easier</p><pre><code class="language-julia hljs">julia&gt; using DataFrames
+
+julia&gt; @addto! DataFrame() begin
+           x = [&quot;a&quot;, &quot;b&quot;, &quot;c&quot;]
+           @add x = x .* &quot;_x&quot;
+           @add x_y = x .* &quot;_y&quot;
+       end
+3×2 DataFrame
+ Row │ x       x_y    
+     │ String  String 
+─────┼────────────────
+   1 │ a_x     a_x_y
+   2 │ b_x     b_x_y
+   3 │ c_x     c_x_y
+</code></pre><div class="admonition is-info"><header class="admonition-header">Note</header><div class="admonition-body"><p>You cannot use <code>@add</code> in new scopes created with <code>body</code>. The following will fail</p><pre><code class="language-julia hljs">@addnt begin
+  let
+      a = 1
+      @add a
+  end
+end</code></pre><p>This is because <code>@addnt</code>, <code>@adddict</code>, and <code>@addto!</code> create anonymous variables, then constructs and modifies objects at the end of the block. The same applies for <code>for</code> loops and <code>function</code>s  inside the <code>@addnt</code>, <code>@adddict</code>, and  <code>@addto!</code> blocks. In theory, <code>@addto!</code> should not have this limitation.  However I implementing this feature in <code>@addnt</code> is more complicated,  and at the moment maintaining simple feature parity is important. </p></div></div></article><nav class="docs-footer"><a class="docs-footer-nextpage" href="api/api/">API »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 0.27.6 on <span class="colophon-date" title="Friday 17 September 2021 14:57">Friday 17 September 2021</span>. Using Julia version 1.4.2.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
